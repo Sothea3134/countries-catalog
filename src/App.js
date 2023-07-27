@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
-import { motion } from "framer-motion";
-import ReactPaginate from 'react-paginate';
 import ClipLoader from "react-spinners/ClipLoader";
 import { getCountries, getCountryByName } from './services/country';
 import CountryCard from './components/CountryCard';
+import NotFound from './components/NotFound';
+import Enum from './common/enum';
+import Pagination from './components/Pagination';
 import './App.css';
 import 'react-loading-skeleton/dist/skeleton.css'
-import NotFound from './components/NotFound';
 
 function App() {
 
@@ -15,6 +14,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [itemOffset, setItemOffset] = useState(0);
+  const [orderName, setOrderName] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 25;
   const endOffset = itemOffset + itemsPerPage;
   const currentItems = countries.slice(itemOffset, endOffset);
@@ -41,6 +42,7 @@ function App() {
 
   const handlePageClick = (event) => {
     const newOffset = (event.selected * itemsPerPage) % countries.length;
+    setCurrentPage(event.selected);
     setItemOffset(newOffset);
     scrollToTop();
   };
@@ -59,21 +61,29 @@ function App() {
       timer = setTimeout(() => {
         fetchCountryByName(events.target.value)
         setItemOffset(0)
+        setCurrentPage(0)
       }, 1000);
     } else {
       timer = setTimeout(() => {
         fetchCountries();
       }, 1000);
-
     }
-
   }
 
   const fetchCountryByName = (name) => {
     setLoading(true);
     getCountryByName(name).then((response) => {
       if (response.data) {
-        setCountries(response.data)
+        const data = response.data;
+        if (orderName) {
+          if (orderName === Enum.ODDERNAME.ASC) {
+            data.sort((a, b) => a.name.official.localeCompare(b.name.official));
+          }
+          else {
+            data.sort((a, b) => b.name.official.localeCompare(a.name.official));
+          }
+        }
+        setCountries([...data])
         setNotFound(false);
       }
     })
@@ -90,14 +100,40 @@ function App() {
     setLoading(true);
     getCountries().then((response) => {
       if (response.data) {
-        setCountries(response.data)
+        const data = response.data;
+        if (orderName) {
+          if (orderName === Enum.ODDERNAME.ASC) {
+            data.sort((a, b) => a.name.official.localeCompare(b.name.official));
+          }
+          else {
+            data.sort((a, b) => b.name.official.localeCompare(a.name.official));
+          }
+        }
+        setCountries(data);
+        setItemOffset(0)
+        setCurrentPage(0)
+        setNotFound(false);
       }
     })
       .finally(() => setLoading(false));
   }
 
+  const handleSortByCountryName = (value) => {
+    let sortArray = [];
+    if (value === Enum.ODDERNAME.ASC) {
+      sortArray = countries.toSorted((a, b) => a.name.official.localeCompare(b.name.official));
+    } else {
+      sortArray = countries.toSorted((a, b) => b.name.official.localeCompare(a.name.official));
+    }
+    setCountries(sortArray);
+    setItemOffset(0)
+    setCurrentPage(0);
+    setOrderName(value)
+  }
+
   useEffect(() => {
     fetchCountries();
+    // eslint-disable-next-line
   }, [])
 
   return (
@@ -136,9 +172,30 @@ function App() {
                   className="block p-4 pl-10 w-full rounded-sm border border-gray-300 focus:outline-cyan-500 focus:rounded-sm"
                   placeholder="Country Name"
                 />
-                <div className="text-red-400 mt-2.5 absolute">
-                </div>
               </div>
+            </div>
+          </div>
+          <div className="mt-8 px-4">Sort by country name</div>
+          <div className="flex px-4 mt-3">
+            <div className="flex gap-x-2 flex-wrap">
+              <button
+                className={
+                  orderName === Enum.ODDERNAME.ASC ? "bg-sky-500 text-white rounded-sm border border-cyan-500 h-12 w-36" : "bg-sky-50 rounded-sm border border-gray-300 h-12 w-36"
+                }
+                onClick={() => handleSortByCountryName(Enum.ODDERNAME.ASC)}
+              >
+                Ascending
+              </button>
+
+              <button
+                className={
+                  orderName === Enum.ODDERNAME.DESC ? "bg-sky-500 text-white rounded-sm border border-cyan-500 h-12 w-36" : "bg-sky-50 rounded-sm border border-gray-300 h-12 w-36"
+                }
+                onClick={() => handleSortByCountryName(Enum.ODDERNAME.DESC)}
+              >
+                Descending
+              </button>
+
             </div>
           </div>
         </header>
@@ -163,35 +220,7 @@ function App() {
                   :
                   <>
                     <CountryCard currentItems={currentItems} />
-                    <motion.div
-                      variants={paginationVariants}
-                      initial="hidden"
-                      animate="visible"
-                    >
-                      <ReactPaginate
-                        breakLabel={<span className="mr-4">...</span>}
-                        nextLabel={
-                          showNextButton ? (
-                            <span className="w-10 h-10 flex items-center justify-center bg-lightGray rounded-md">
-                              <BsChevronRight />
-                            </span>
-                          ) : null
-                        }
-                        onPageChange={handlePageClick}
-                        pageRangeDisplayed={3}
-                        pageCount={pageCount}
-                        previousLabel={
-                          showPrevButton ? (
-                            <span className="w-10 h-10 flex items-center justify-center bg-lightGray rounded-md mr-4">
-                              <BsChevronLeft />
-                            </span>
-                          ) : null
-                        }
-                        containerClassName="flex items-center justify-center mt-8 mb-4"
-                        pageClassName="block border- border-solid border-lightGray hover:bg-lightGray w-10 h-10 flex items-center justify-center rounded-md mr-4"
-                        activeClassName="bg-cyan-400 text-white"
-                      />
-                    </motion.div>
+                    <Pagination paginationVariants={paginationVariants} showNextButton={showNextButton} handlePageClick={handlePageClick} pageCount={pageCount} showPrevButton={showPrevButton} currentPage={currentPage} />
                   </>
               }
             </>

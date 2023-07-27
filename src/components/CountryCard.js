@@ -27,11 +27,11 @@ function CountryCard({ currentItems }) {
                 <span>Country Name:   </span>
                 {country.name.official}
               </div>
-              <div><span className='font-bold'>CCA2</span>: {country.cca2}</div>
-              <div><span className='font-bold'>CCA3</span>: {country.cca3}</div>
+              <div><span className='font-bold'>CCA2</span>: {country.cca2 ? country.cca2 : "N/A"}</div>
+              <div><span className='font-bold'>CCA3</span>: {country.cca3 ? country.cca3 : "N/A"}</div>
               <div><span className='font-bold'>Native Country Name</span>: {country?.name?.nativeName?.zho ? country?.name?.nativeName?.zho.officia : country?.translations?.zho.official}</div>
               <div><span className='font-bold'>Alternative Country Name</span>: {country?.altSpellings.join(",")}</div>
-              <div><span className='font-bold'>IDD Root</span>: {country.idd?.root}</div>
+              <div><span className='font-bold'>IDD Root</span>: {country.idd?.root ? country.idd?.root : "N/A"}</div>
               <div><span className='font-bold'>IDD Suffixes</span>: {country.idd.suffixes && country.idd.suffixes[0]} {country.idd.suffixes && country.idd.suffixes[1]}</div>
             </div>
           </div>

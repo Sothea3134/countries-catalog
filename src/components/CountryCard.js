@@ -1,6 +1,11 @@
-import { memo } from "react";
+import { memo, useRef } from "react";
+import Modal from "./Modal";
 function CountryCard({ currentItems }) {
+  const modelRef = useRef(null);
 
+  const handleOpenModal = (contryItem) => {
+    modelRef.current.openModal(contryItem);
+  }
   return (
     <>
       <div
@@ -18,7 +23,7 @@ function CountryCard({ currentItems }) {
               <img src={country.flags.png} className="w-full h-full" alt='flag' />
             </div>
             <div className="px-4 pt-0 lg:p-4">
-              <div className="font-bold text-lg cursor-pointer">
+              <div className="font-bold text-lg cursor-pointer" onClick={() => handleOpenModal(country)}>
                 <span>Country Name:   </span>
                 {country.name.official}
               </div>
@@ -32,6 +37,8 @@ function CountryCard({ currentItems }) {
           </div>
         })}
       </div >
+
+      <Modal ref={modelRef} />
     </>
   );
 }

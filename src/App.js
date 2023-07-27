@@ -72,7 +72,6 @@ function App() {
   const fetchCountryByName = (name) => {
     setLoading(true);
     getCountryByName(name).then((response) => {
-      console.log(response.data)
       if (response.data) {
         setCountries(response.data)
         setNotFound(false);
@@ -101,7 +100,6 @@ function App() {
     fetchCountries();
   }, [])
 
-  console.log("currentItems", currentItems)
   return (
     <main>
       <div className="container mx-auto sm:px-12">
@@ -200,6 +198,7 @@ function App() {
         }
 
       </div >
+
     </main >
   );
 }
